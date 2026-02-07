@@ -98,10 +98,10 @@ jobs:
 
           # Go 1.22 with special patch can work on Windows 7
           # https://github.com/MetaCubeX/go/commits/release-branch.go1.22/
-          - { goos: windows, goarch: '386', output: '386-go122', goversion: '1.22' }
-          - { goos: windows, goarch: amd64, goamd64: v1, output: amd64-v1-go122, goversion: '1.22' }
-          - { goos: windows, goarch: amd64, goamd64: v2, output: amd64-v2-go122, goversion: '1.22' }
-          - { goos: windows, goarch: amd64, goamd64: v3, output: amd64-v3-go122, goversion: '1.22' }
+          #- { goos: windows, goarch: '386', output: '386-go122', goversion: '1.22' }
+          #- { goos: windows, goarch: amd64, goamd64: v1, output: amd64-v1-go122, goversion: '1.22' }
+          #- { goos: windows, goarch: amd64, goamd64: v2, output: amd64-v2-go122, goversion: '1.22' }
+          #- { goos: windows, goarch: amd64, goamd64: v3, output: amd64-v3-go122, goversion: '1.22' }
 
           # Go 1.21 can revert commit `9e4385` to work on Windows 7
           # https://github.com/golang/go/issues/64622#issuecomment-1847475161
