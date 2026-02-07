@@ -1,0 +1,67 @@
+name: Build-Custom-Mihomo
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - Alpha
+      - main
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        jobs:
+          # Windows для тестов
+          - { goos: windows, goarch: amd64, output: windows-amd64, extension: .exe }
+          # OpenWrt (mips_24kc / MT7621)
+          - { goos: linux, goarch: mipsle, gomips: softfloat, output: mipsle-softfloat }
+          # NanoPi R3S (RK3566 / ARM64)
+          - { goos: linux, goarch: arm64, output: arm64 }
+
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: '1.23' # Стабильная версия для Mihomo
+          check-latest: true
+
+      - name: Set variables
+        run: |
+          echo "VERSION=$(git rev-parse --short HEAD)" >> $GITHUB_ENV
+          echo "BUILDTIME=$(date)" >> $GITHUB_ENV
+          echo "CGO_ENABLED=0" >> $GITHUB_ENV
+
+      - name: Build Core
+        env:
+          GOOS: ${{ matrix.jobs.goos }}
+          GOARCH: ${{ matrix.jobs.goarch }}
+          GOMIPS: ${{ matrix.jobs.gomips }}
+        run: |
+          # Формируем имя выходного файла
+          OUT_FILE="mihomo-${{ matrix.jobs.output }}${{ matrix.jobs.extension }}"
+          
+          # Сама сборка
+          go build -v -trimpath \
+            -ldflags "-s -w -X 'github.com/metacubex/mihomo/constant.Version=${{ env.VERSION }}' \
+                           -X 'github.com/metacubex/mihomo/constant.BuildTime=${{ env.BUILDTIME }}'" \
+            -o "$OUT_FILE" .
+
+          # Упаковка в zip для Windows и в gz для Linux
+          if [ "${{ matrix.jobs.goos }}" = "windows" ]; then
+            zip "${OUT_FILE}.zip" "$OUT_FILE"
+          else
+            gzip -c "$OUT_FILE" > "${OUT_FILE}.gz"
+          fi
+
+      - name: Upload Artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: mihomo-${{ matrix.jobs.output }}
+          path: |
+            mihomo*.zip
+            mihomo*.gz
